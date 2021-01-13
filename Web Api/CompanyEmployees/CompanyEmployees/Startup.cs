@@ -1,8 +1,11 @@
 using AutoMapper;
 using CompanyEmployees.Extensions;
+using Entities;
+using Entities.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -31,7 +34,11 @@ namespace CompanyEmployees
             services.ConfigureRepositoryManager();
             services.AddAutoMapper(typeof(Startup));
 
-            services.AddControllers();
+            services.AddControllers(); 
+            services.AddSwaggerDocumentation();
+
+            services.AddIdentity<User, IdentityRole>()
+                .AddEntityFrameworkStores<RepositoryContext>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -59,6 +66,8 @@ namespace CompanyEmployees
             app.UseRouting();
 
             app.UseAuthorization();
+            app.UseSwaggerDocumention();
+
 
             app.UseEndpoints(endpoints =>
             {
