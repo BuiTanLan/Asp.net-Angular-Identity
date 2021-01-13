@@ -37,7 +37,12 @@ namespace CompanyEmployees
             services.AddControllers(); 
             services.AddSwaggerDocumentation();
 
-            services.AddIdentity<User, IdentityRole>()
+            services.AddIdentity<User, IdentityRole>(opt => 
+            {
+                opt.Password.RequiredLength = 7;
+                opt.Password.RequireDigit = false;
+                opt.User.RequireUniqueEmail = true;
+            })
                 .AddEntityFrameworkStores<RepositoryContext>();
         }
 

@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { AuthenticationService } from 'src/app/shared/services/authentication.service';
+import { PasswordConfirmationValidatorService } from 'src/app/shared/services/password-confirmation-validator.service';
 import { UserForRegistrationDto } from 'src/app/_interfaces/userForRegistrationDto.model';
 
 @Component({
@@ -10,7 +11,10 @@ import { UserForRegistrationDto } from 'src/app/_interfaces/userForRegistrationD
 })
 export class RegisterUserComponent implements OnInit {
   public registerForm: FormGroup;
-  constructor(private authService: AuthenticationService) {}
+  public errorMessage = '';
+  public showError: boolean;
+
+  constructor(private authService: AuthenticationService, private passConfValidator: PasswordConfirmationValidatorService) {}
   ngOnInit(): void {
     this.registerForm = new FormGroup({
       firstName: new FormControl(''),
@@ -19,6 +23,8 @@ export class RegisterUserComponent implements OnInit {
       password: new FormControl('', [Validators.required]),
       confirm: new FormControl(''),
     });
+    this.registerForm.get('confirm').setValidators([Validators.required,
+      this.passConfValidator.validateConfirmPassword(this.registerForm.get('password'))]);
   }
   public validateControl = (controlName: string) => {
     return (
@@ -30,6 +36,7 @@ export class RegisterUserComponent implements OnInit {
     return this.registerForm.controls[controlName].hasError(errorName);
   }
   public registerUser = (registerFormValue) => {
+    this.showError = false;
     const formValues = { ...registerFormValue };
     const user: UserForRegistrationDto = {
       firstName: formValues.firstName,
@@ -43,7 +50,8 @@ export class RegisterUserComponent implements OnInit {
         console.log('Successful registration');
       },
       (error) => {
-        console.log(error.error.errors);
+        this.errorMessage = error;
+        this.showError = true;
       }
     );
   }
