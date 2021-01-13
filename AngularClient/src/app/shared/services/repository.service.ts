@@ -10,7 +10,10 @@ export class RepositoryService {
   constructor(private http: HttpClient, private envUrl: EnvironmentUrlService) { }
 
   public getData = (route: string) => {
-    return this.http.get(this.createCompleteRoute(route, this.envUrl.urlAddress));
+    let headers = new HttpHeaders();
+    const token = localStorage.getItem('token');
+    headers = headers.set('Authorization', `Bearer ${token}`);
+    return this.http.get(this.createCompleteRoute(route, this.envUrl.urlAddress), { headers });
   }
   private createCompleteRoute = (route: string, envAddress: string) => {
     return `${envAddress}/${route}`;

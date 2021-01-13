@@ -1,10 +1,12 @@
 ﻿using AutoMapper;
+using CompanyEmployees.JwtFeatures;
 using Entities.DTO;
 using Entities.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -16,9 +18,11 @@ namespace CompanyEmployees.Controllers
     {
         private readonly UserManager<User> _userManager;
         private readonly IMapper _mapper;
+        private readonly JwtHandler _jwtHandler;
 
-        public AccountsController(UserManager<User> userManager, IMapper mapper)
+        public AccountsController(UserManager<User> userManager, IMapper mapper, JwtHandler jwtHandler)
         {
+            _jwtHandler = jwtHandler;
             _userManager = userManager;
             _mapper = mapper;
         }
@@ -40,6 +44,22 @@ namespace CompanyEmployees.Controllers
             }
 
             return StatusCode(201);
+        }
+
+        [HttpPost("Login")]
+        public async Task<IActionResult> Login([FromBody] UserForAuthenticationDto userForAuthentication)
+        {
+            var user = await _userManager.FindByNameAsync(userForAuthentication.Email);
+
+            if (user == null || !await _userManager.CheckPasswordAsync(user, userForAuthentication.Password))
+                return Unauthorized(new AuthResponseDto { ErrorMessage = "Invalid Authentication" });
+
+            var signingCredentials = _jwtHandler.GetSigningCredentials();
+            var claims = _jwtHandler.GetClaims(user);
+            var tokenOptions = _jwtHandler.GenerateTokenOptions(signingCredentials, claims);
+            var token = new JwtSecurityTokenHandler().WriteToken(tokenOptions);
+
+            return Ok(new AuthResponseDto { IsAuthSuccessful = true, Token = token });
         }
     }
 }

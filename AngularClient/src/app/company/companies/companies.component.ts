@@ -17,10 +17,10 @@ export class CompaniesComponent implements OnInit {
   }
 
   public getCompanies = () => {
-    const apiAddress: string = "api/companies";
+    const apiAddress = 'api/companies';
     this.repository.getData(apiAddress)
     .subscribe(res => {
       this.companies = res as Company[];
-    })
+    });
   }
 }
