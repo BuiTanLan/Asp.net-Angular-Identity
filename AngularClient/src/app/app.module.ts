@@ -8,6 +8,10 @@ import { MenuComponent } from './menu/menu.component';
 import { NotFoundComponent } from './error-pages/not-found/not-found.component';
 import { ErrorHandlerService } from './shared/services/error-handler.service';
 import { JwtModule } from '@auth0/angular-jwt';
+import { AuthGuard } from './shared/guards/auth.guard';
+import { PrivacyComponent } from './privacy/privacy.component';
+import { ForbiddenComponent } from './forbidden/forbidden.component';
+import { AdminGuard } from './shared/guards/admin.guard';
 
 
 
@@ -16,15 +20,19 @@ import { JwtModule } from '@auth0/angular-jwt';
     AppComponent,
     HomeComponent,
     MenuComponent,
-    NotFoundComponent
+    NotFoundComponent,
+    PrivacyComponent,
+    ForbiddenComponent
   ],
   imports: [
     BrowserModule,
     HttpClientModule,
     RouterModule.forRoot([
     { path: 'home', component: HomeComponent },
-    { path: 'company', loadChildren: () => import('./company/company.module').then(m => m.CompanyModule) },
+    { path: 'company', loadChildren: () => import('./company/company.module').then(m => m.CompanyModule), canActivate: [AuthGuard] },
     { path: 'authentication', loadChildren: () => import('./authentication/authentication.module').then(m => m.AuthenticationModule) },
+    { path: 'privacy', component: PrivacyComponent, canActivate: [AuthGuard, AdminGuard] },
+    { path: 'privacy', component: PrivacyComponent },
     { path: '404', component: NotFoundComponent },
     { path: '', redirectTo: '/home', pathMatch: 'full' },
     { path: '**', redirectTo: '/404', pathMatch: 'full' }

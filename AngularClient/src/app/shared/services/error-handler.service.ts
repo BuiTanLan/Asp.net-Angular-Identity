@@ -30,6 +30,9 @@ export class ErrorHandlerService implements HttpInterceptor {
     else if (error.status === 401) {
       return this.handleUnauthorized(error);
     }
+    else if (error.status === 403) {
+      return this.handleForbidden(error);
+    }
   }
 
   private handleNotFound = (error: HttpErrorResponse): string => {
@@ -56,9 +59,13 @@ export class ErrorHandlerService implements HttpInterceptor {
       return 'Authentication failed. Wrong Username or Password';
     }
     else {
-      this.router.navigate(['/authentication/login']);
+      this.router.navigate(['/authentication/login'], {queryParams: { returnUrl: this.router.url}});
       return error.message;
     }
+  }
+  private handleForbidden = (error: HttpErrorResponse) => {
+    this.router.navigate(['/forbidden'], { queryParams: { returnUrl: this.router.url } });
+    return 'Forbidden';
   }
 
 }
