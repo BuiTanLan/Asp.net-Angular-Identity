@@ -6,6 +6,8 @@ import { UserForAuthenticationDto } from 'src/app/_interfaces/userForAuthenticat
 import { UserForRegistrationDto } from 'src/app/_interfaces/userForRegistrationDto.model';
 import { EnvironmentUrlService } from './environment-url.service';
 import { JwtHelperService } from '@auth0/angular-jwt';
+import { ForgotPassword } from 'src/app/_interfaces/forgotPassword.model';
+import { ResetPasswordDto } from 'src/app/_interfaces/resetPaswordDto.model';
 
 @Injectable({
   providedIn: 'root'
@@ -45,5 +47,11 @@ export class AuthenticationService {
     const role = decodedToken['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
 
     return role === 'Administrator';
+  }
+  public forgotPassword = (route: string, body: ForgotPassword) => {
+    return this.http.post(this.createCompleteRoute(route, this.envUrl.urlAddress), body);
+  }
+  public resetPassword = (route: string, body: ResetPasswordDto) => {
+    return this.http.post(this.createCompleteRoute(route, this.envUrl.urlAddress), body);
   }
 }
