@@ -65,17 +65,34 @@ namespace CompanyEmployees.Controllers
         {
             var user = await _userManager.FindByNameAsync(userForAuthentication.Email);
 
-                if (user == null)
-                    return BadRequest("Invalid Request");
-                if (!await _userManager.IsEmailConfirmedAsync(user))
-                    return Unauthorized(new AuthResponseDto { ErrorMessage = "Email is not confirmed" });
-                if (!await _userManager.CheckPasswordAsync(user, userForAuthentication.Password))
-                    return Unauthorized(new AuthResponseDto { ErrorMessage = "Invalid Authentication" });
+            if (user == null)
+                return BadRequest("Invalid Request");
+            if (!await _userManager.IsEmailConfirmedAsync(user))
+                return Unauthorized(new AuthResponseDto { ErrorMessage = "Email is not confirmed" });
+                //you can check here if the account is locked out in case the user enters valid credentials after locking the account.
+
+            if (!await _userManager.CheckPasswordAsync(user, userForAuthentication.Password))
+            {
+                await _userManager.AccessFailedAsync(user);
+        
+                if (await _userManager.IsLockedOutAsync(user))
+                {
+                    var content = $"Your account is locked out. To reset the password click this link: {userForAuthentication.clientURI}";
+                    var message = new Message(new string[] { userForAuthentication.Email }, "Locked out account information", content, null);
+                    await _emailSender.SendEmailAsync(message);
+        
+                    return Unauthorized(new AuthResponseDto { ErrorMessage = "The account is locked out" });
+                }
+        
+                return Unauthorized(new AuthResponseDto { ErrorMessage = "Invalid Authentication" });
+            }
 
             var signingCredentials = _jwtHandler.GetSigningCredentials();
             var claims = await _jwtHandler.GetClaims(user);
             var tokenOptions = _jwtHandler.GenerateTokenOptions(signingCredentials, claims);
             var token = new JwtSecurityTokenHandler().WriteToken(tokenOptions);
+
+            await _userManager.ResetAccessFailedCountAsync(user);
 
             return Ok(new AuthResponseDto { IsAuthSuccessful = true, Token = token });
         }
@@ -122,6 +139,8 @@ namespace CompanyEmployees.Controllers
 
                 return BadRequest(new { Errors = errors });
             }
+                await _userManager.SetLockoutEndDateAsync(user, new DateTime(2000, 1, 1));
+
 
             return Ok();
         }
