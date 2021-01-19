@@ -11,6 +11,9 @@ import { ResetPasswordDto } from 'src/app/_interfaces/resetPaswordDto.model';
 import { CustomEncoder } from '../custom-encoder';
 import { AuthResponseDto } from 'src/app/_interfaces/authenResponse.model';
 import { TwoFactorDto } from 'src/app/_interfaces/twoFactorDto.model';
+import { SocialAuthService } from 'angularx-social-login';
+import { GoogleLoginProvider } from 'angularx-social-login';
+import { ExternalAuthDto } from 'src/app/_interfaces/externalAuthDto.model';
 
 @Injectable({
   providedIn: 'root'
@@ -22,7 +25,8 @@ export class AuthenticationService {
   constructor(
     private http: HttpClient,
     private envUrl: EnvironmentUrlService,
-    private jwtHelper: JwtHelperService) { }
+    private jwtHelper: JwtHelperService,
+    private externalAuthService: SocialAuthService) { }
 
   public isUserAuthenticated = (): boolean => {
     const token = localStorage.getItem('token');
@@ -66,6 +70,15 @@ export class AuthenticationService {
     return this.http.get(this.createCompleteRoute(route, this.envUrl.urlAddress), { params });
   }
   public twoStepLogin = (route: string, body: TwoFactorDto) => {
+    return this.http.post<AuthResponseDto>(this.createCompleteRoute(route, this.envUrl.urlAddress), body);
+  }
+  public signInWithGoogle = () => {
+    return this.externalAuthService.signIn(GoogleLoginProvider.PROVIDER_ID);
+  }
+  public signOutExternal = () => {
+    this.externalAuthService.signOut();
+  }
+  public externalLogin = (route: string, body: ExternalAuthDto) => {
     return this.http.post<AuthResponseDto>(this.createCompleteRoute(route, this.envUrl.urlAddress), body);
   }
 }

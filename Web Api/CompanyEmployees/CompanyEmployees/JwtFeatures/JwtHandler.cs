@@ -1,4 +1,6 @@
-﻿using Entities.Models;
+﻿using Entities.DTO;
+using Entities.Models;
+using Google.Apis.Auth;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -18,12 +20,16 @@ namespace CompanyEmployees.JwtFeatures
         private readonly IConfiguration _configuration;
         private readonly UserManager<User> _userManager;
         private readonly IConfigurationSection _jwtSettings;
+        private readonly IConfigurationSection _goolgeSettings;
+
 
         public JwtHandler(IConfiguration configuration, UserManager<User> userManager)
         {
             _configuration = configuration;
             _userManager = userManager;
             _jwtSettings = _configuration.GetSection("JwtSettings");
+            _goolgeSettings = _configuration.GetSection("GoogleAuthSettings");
+
         }
 
         public SigningCredentials GetSigningCredentials()
@@ -68,6 +74,24 @@ namespace CompanyEmployees.JwtFeatures
             var token = new JwtSecurityTokenHandler().WriteToken(tokenOptions);
 
             return token;
+        }
+        public async Task<GoogleJsonWebSignature.Payload> VerifyGoogleToken(ExternalAuthDto externalAuth)
+        {
+            try
+            {
+                var settings = new GoogleJsonWebSignature.ValidationSettings()
+                {
+                    Audience = new List<string>() { _goolgeSettings.GetSection("clientId").Value }
+                };
+
+                var payload = await GoogleJsonWebSignature.ValidateAsync(externalAuth.IdToken, settings);
+                return payload;
+            }
+            catch (Exception ex)
+            {
+                //log an exception
+                return null;
+            }
         }
     }
 }

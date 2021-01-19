@@ -12,6 +12,9 @@ import { AuthGuard } from './shared/guards/auth.guard';
 import { PrivacyComponent } from './privacy/privacy.component';
 import { ForbiddenComponent } from './forbidden/forbidden.component';
 import { AdminGuard } from './shared/guards/admin.guard';
+import { SocialLoginModule, SocialAuthServiceConfig } from 'angularx-social-login';
+import { GoogleLoginProvider } from 'angularx-social-login';
+import { CommonModule } from '@angular/common';
 
 
 
@@ -26,7 +29,9 @@ import { AdminGuard } from './shared/guards/admin.guard';
   ],
   imports: [
     BrowserModule,
+    SocialLoginModule,
     HttpClientModule,
+    CommonModule,
     RouterModule.forRoot([
     { path: 'home', component: HomeComponent },
     { path: 'company', loadChildren: () => import('./company/company.module').then(m => m.CompanyModule), canActivate: [AuthGuard] },
@@ -47,6 +52,20 @@ import { AdminGuard } from './shared/guards/admin.guard';
   ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: ErrorHandlerService, multi: true },
+    {
+      provide: 'SocialAuthServiceConfig',
+      useValue: {
+        autoLogin: false,
+        providers: [
+          {
+            id: GoogleLoginProvider.PROVIDER_ID,
+            provider: new GoogleLoginProvider(
+              '766042399636-elblcf74dgnul28r1m380ae7tpjs3vlp.apps.googleusercontent.com'
+            )
+          },
+        ],
+      } as SocialAuthServiceConfig
+    }
   ],
   bootstrap: [AppComponent]
 })
